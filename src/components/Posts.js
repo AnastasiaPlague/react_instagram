@@ -1,21 +1,60 @@
-import React, { Component } from 'react';
-import Post from './Post';
+import React, { Component } from "react";
+import InstaService from "../services/instaService";
+import User from "./User";
+import ErrorMessage from "./Error";
 
 class Posts extends Component {
-  render() { 
-    return (
-			<div className="left">
-				<Post
-					src="https://syndlab.com/files/view/5db9b150252346nbDR1gKP3OYNuwBhXsHJerdToc5I0SMLfk7qlv951730.jpeg"
-					alt="landscape"
-				/>
-				<Post
-					src="https://images.barrons.com/im-117923?width=620&size=1.5005861664712778"
-					alt="landscape"
-				/>
-			</div>
-		);
-  }
+	InstaService = new InstaService(); // calls new class to "save" methods to the new object
+	state = {
+		posts: [],
+		error: false
+	};
+
+	componentDidMount() {
+		this.updatePosts();
+	}
+
+	updatePosts() {
+		this.InstaService.getAllPosts()
+			.then(this.onPostsLoaded) //this function will automatically receive data from the JSON and pass it to the method onLoaded
+			.catch(this.onError);
+	}
+
+	onPostsLoaded = posts => {
+		this.setState({
+			posts,
+			error: false
+		});
+	};
+
+	onError = () => {
+		this.setState({
+			error: true
+		});
+	};
+
+	renderItems(arr) {
+		return arr.map(item => {
+			const { name, altname, photo, src, alt, descr, id } = item;
+			return (
+				<div className="post">
+					<User src={photo} alt={altname} name={name} key={id} min />
+					<img src={src} alt={alt} />
+					<div className="post__name">{name}</div>
+					<div className="post__descr">{descr}</div>
+				</div>
+			);
+		});
+	}
+
+	render() {
+		const { error, posts } = this.state;
+		if (error) {
+			return <ErrorMessage />;
+		}
+		const items = this.renderItems(posts);
+		return <div className="left">{items}</div>;
+	}
 }
- 
+
 export default Posts;
